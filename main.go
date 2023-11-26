@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/events"
 	lambda "github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"nuts/awsgo"
 	"os"
 )
@@ -25,9 +26,21 @@ func EjecLambda(ctx context.Context, request events.APIGatewayProxyRequest) (*ev
 				"Content-Type": "application/json",
 			},
 		}
+		return res, nil
 	}
-	return res, nil
+	SecretModel, err := secretsmanager.GetSecret(os.Getenv("SecretName"))
+	if err != nil {
+		res = &events.APIGatewayProxyResponse{
+			StatusCode: 400,
+			Body:       "Error in reading secrets" + err.Error(),
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+		}
+		return res, nil
+	}
 
+	return res, nil
 }
 
 func ValParams() bool {
