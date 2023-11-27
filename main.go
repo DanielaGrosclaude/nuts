@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/events"
 	lambda "github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"nuts/awsgo"
+	"nuts/bd"
+	"nuts/models"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -40,6 +42,31 @@ func EjecLambda(ctx context.Context, request events.APIGatewayProxyRequest) (*ev
 		return res, nil
 	}
 
+	path := strings.Replace(request.PathParameters["nuts"], os.Getenv("UrlPrefix"), "", -1)
+
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("path"), path)
+
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("method"), request.HTTPMethod)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("user"), SecretModel.Username)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("password"), SecretModel.Password)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("host"), SecretModel.Host)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("database"), SecretModel.Database)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("jwtSign"), SecretModel.JWTSign)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("body"), request.Body)
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("bucketName"), os.Getenv("BucketName"))
+
+	//Check bd
+	bd.ConectionBD(awsgo.Ctx)
+	if err != nil {
+		res = &events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       "error in the connection with the database" + err.Error(),
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+		}
+		return res, nil
+	}
 	return res, nil
 }
 

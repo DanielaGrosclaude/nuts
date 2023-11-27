@@ -1,6 +1,6 @@
 package models
 
-type Secret struct {
+type SecretModel struct {
 	Host     string `json:"host"`
 	Username string `json:"username"`
 	Password string `json:"password"`
