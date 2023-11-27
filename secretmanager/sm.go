@@ -10,8 +10,8 @@ import (
 	"nuts/models"
 )
 
-func GetSecret(secretName string) (models.SecretModel, error) {
-	var dataSecret models.SecretModel
+func GetSecret(secretName string) (models.Secret, error) {
+	var dataSecret models.Secret
 
 	fmt.Println("> request secret" + secretName)
 

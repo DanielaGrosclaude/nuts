@@ -7,6 +7,7 @@ import (
 	"nuts/awsgo"
 	"nuts/bd"
 	"nuts/models"
+	"nuts/secretmanager"
 	"os"
 	"strings"
 )
@@ -30,7 +31,9 @@ func EjecLambda(ctx context.Context, request events.APIGatewayProxyRequest) (*ev
 		}
 		return res, nil
 	}
-	SecretModel, err := secretsmanager.GetSecret(os.Getenv("SecretName"))
+	secretName := os.Getenv("SecretName")
+	SecretModel, err := secretmanager.GetSecret(secretName)
+	//SecretModel, err := secretsmanager.GetSecret(os.Getenv("SecretName"))
 	if err != nil {
 		res = &events.APIGatewayProxyResponse{
 			StatusCode: 400,
