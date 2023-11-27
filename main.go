@@ -6,8 +6,10 @@ import (
 	lambda "github.com/aws/aws-lambda-go/lambda"
 	"nuts/awsgo"
 	"nuts/bd"
+	"nuts/handlers"
 	"nuts/models"
 	"nuts/secretmanager"
+
 	"os"
 	"strings"
 )
@@ -70,7 +72,21 @@ func EjecLambda(ctx context.Context, request events.APIGatewayProxyRequest) (*ev
 		}
 		return res, nil
 	}
-	return res, nil
+
+	respAPI := handlers.Handler(awsgo.Ctx, request)
+
+	if respAPI.CustomResp == nil {
+		res = &events.APIGatewayProxyResponse{
+			StatusCode: respAPI.Status,
+			Body:       respAPI.Message,
+			Headers: map[string]string{
+				"Content-Type": "application/json",
+			},
+		}
+		return res, nil
+	} else {
+		return respAPI.CustomResp, nil
+	}
 }
 
 func ValParams() bool {
